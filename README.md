@@ -52,7 +52,7 @@ It is an addon, due not overhead projects with __RemoteDebug__, that not needs a
 
 ## How it looks
 
-__RemoteDebuggger__ in Arduino serial monitor:
+__RemoteDebuggger__ in telnet client:
 
 Image:
 
