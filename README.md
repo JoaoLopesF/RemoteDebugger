@@ -58,10 +58,6 @@ Image:
 
 ![Imgur](https://i.imgur.com/2deR9pN.png)
 
-    Youtube:
-
-[![Youtube](http://img.youtube.com/vi/EfvF55Ww-lU/0.jpg)](https://www.youtube.com/watch?v=EfvF55Ww-lU)
-
 ## News
 
 ### 2019-02-28
