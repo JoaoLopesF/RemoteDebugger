@@ -62,7 +62,7 @@ Image:
 
 ### 2019-02-28
 
-  - The new version of __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__, the 2.0.0, implements an support to __RemoteDebuggger__, few code added, just some callbacks.
+  - The new version of __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__, the 2.0.0, implements an support to __RemoteDebuggger__, few code added, just some callbacks. Please update this, if you have olders versions of RemoteDebug.
 
 ## Beta version
 
