@@ -1,7 +1,4 @@
 # RemoteDebugger Library for Arduino
-
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9c53789a82d4d40b8be068d4aa8bc15)](https://app.codacy.com/app/JoaoLopesF/RemoteDebugger?utm_source=github.com&utm_medium=referral&utm_content=JoaoLopesF/RemoteDebugger&utm_campaign=Badge_Grade_Settings)
-
 Addon library to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__: An Simple Software Debugger, based on __[SerialDebug](https://github.com/JoaoLopesF/SerialDebug)__
 
 <a href="#releases">![build badge](https://img.shields.io/badge/version-v0.9.0-blue.svg)</a> 
