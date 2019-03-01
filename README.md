@@ -1,7 +1,7 @@
 # RemoteDebugger Library for Arduino
 Addon library to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__: An Simple Software Debugger, based on __[SerialDebug](https://github.com/JoaoLopesF/SerialDebug)__
 
-<a href="#releases">![build badge](https://img.shields.io/badge/version-v0.9.0-blue.svg)</a> 
+<a href="#releases">![build badge](https://img.shields.io/badge/version-v0.9.1-blue.svg)</a> 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9c53789a82d4d40b8be068d4aa8bc15)](https://app.codacy.com/app/JoaoLopesF/RemoteDebugger?utm_source=github.com&utm_medium=referral&utm_content=JoaoLopesF/RemoteDebugger&utm_campaign=Badge_Grade_Settings)
 <a href="https://github.com/JoaoLopesF/SerialDebug/blob/master/LICENSE.txt">![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)</a>
 
@@ -43,8 +43,10 @@ __RemoteDebuggger__ (this library), is a addon to __RemoteDebug__, to implement 
 based in __SerialDebug__.
 
 Notes:
-- This not good as a real hardware debugger, as JTAG/OpenOCD, and others.
-  But it is simple and funcional and works wireless, by WiFi (telnet connection) 
+- This not good as a real hardware debugger, as GBD with JTAG USB hardware.
+  And hardware debuggers require skills to configure and use. 
+  Few Arduino developers use it (e.g. Arduino IDE not have this feature).
+  But RemoteDebugger is simple and funcional and works wireless, by WiFi (telnet connection).
 - This not is a C++ class, like __RemoteDebug__, 
   due keep code compatibility with __SerialDebug__.
   With it, all your debugger codes, by serial or telnet, is same.
@@ -193,6 +195,15 @@ Place it, after include of RemoteDebug:
 ```
 
 ### setup
+
+Converter: 
+
+  __RemoteDebugger__ has a converter to help add this debugger to your Arduino codes,
+  that uses __RemoteDebug__ library.
+
+  [RemoteDebuggerConverter](https://github.com/JoaoLopesF/RemoteDebuggerConverter)
+
+To do it manually: 
 
 Place it, after the RemoteDebug commands (Debug.begin, Debug.set...)
 
@@ -372,6 +383,13 @@ This is do by callbacks in __RemoteDebug__
 
 ## Releases
 
+### 0.9.1 - 2019-02-29
+
+  - Adjustment: the debugger still disable until dbg command, equal to SerialDebug
+  - Changed to one debugHandleDebugger routine
+  - Add debugSetDebuggerEnabled routine
+  - Changed handle debugger logic
+  
 ### 0.9.0 - 2019-02-28
 
     - First beta

@@ -162,10 +162,7 @@ void debugPrintInfo(const char level, const char* function);
 void debugProcessCmdDebugger();
 String debugGetHelpDebugger();
 boolean debugGetDebuggerEnabled();
-
-#ifdef DEBUGGER_FOR_REMOTEDEBUG
-void debugHandleDebugger ();
-#endif
+void debugSetDebuggerEnabled(boolean enabled);
 void debugHandleEvent(boolean calledByHandleEvent);
 String debugBreak();
 #ifdef DEBUG_USE_FLASH_F
@@ -351,7 +348,7 @@ void debugSetLastFunctionDescription(const char *description);
 
 // Handle debugger
 
-void debugHandleDebugger (boolean calledByHandleEvent);
+void debugHandleDebugger (const boolean calledByHandleEvent);
 
 //////// External variables (need to use macros)
 

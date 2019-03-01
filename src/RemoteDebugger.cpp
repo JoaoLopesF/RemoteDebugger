@@ -7,7 +7,13 @@
  *           This not is a C++ class, to keep compatibility with SerialDebug
  *
  * Versions:
- *    - 0.9.0 Beta 1 - 2019-02-22
+ *  ------	----------	-----------------
+ *  0.9.1	2019-02-28	Adjustment: the debugger still disable until dbg command, equal to SerialDebug
+ *                      Changed to one debugHandleDebugger routine
+ *                      Add debugSetDebuggerEnabled routine
+ *                      Changed handle debugger logic
+ *
+ *	0.9.0 	2019-02-28	Beta 1
  *
  */
 
@@ -132,7 +138,7 @@
 
 //////// Defines
 
-#define DEBUGGER_VERSION "0.9.0"
+#define DEBUGGER_VERSION "0.9.1"
 
 // Low memory board ?
 
@@ -608,6 +614,13 @@ String debugGetHelpDebugger() {
 boolean debugGetDebuggerEnabled() {
 
 	return _debugDebuggerEnabled;
+}
+
+// Debugger set enabled (true/false)
+
+void debugSetDebuggerEnabled(boolean enabled) {
+
+	_debugDebuggerEnabled = enabled;
 }
 
 // Not for minimum mode - to save memory
@@ -1178,33 +1191,7 @@ void showHelp() {
 
 // Handle for debugger
 
-#ifdef DEBUGGER_FOR_REMOTEDEBUG
-void debugHandleDebugger () {
-
-	static boolean lastConnected = false;
-
-	// Verify connection
-
-	if (_TelnetClient) {
-
-		if (_TelnetClient->connected() != lastConnected) { // The connection changed ?
-
-			_debugDebuggerEnabled = _TelnetClient->connected();
-			lastConnected = _TelnetClient->connected();
-		}
-
-		// Call the handle
-
-		if (_debugDebuggerEnabled) {
-			debugHandleDebugger(true);
-		}
-
-	} else {
-		_debugDebuggerEnabled = false;
-	}
-}
-#endif
-void debugHandleDebugger (boolean calledByHandleEvent) {
+void debugHandleDebugger (const boolean calledByHandleEvent) {
 
 	// Time measure - give commented
 
@@ -1215,11 +1202,32 @@ void debugHandleDebugger (boolean calledByHandleEvent) {
 	// Inactive ?
 
 #ifdef DEBUGGER_FOR_SERIALDEBUG
+
 	if (!_debugActive || !_debugDebuggerEnabled) {
 		return;
 	}
+
 #else // RemoteDebug
-	if ((_TelnetClient && !_TelnetClient->connected()) || !_debugDebuggerEnabled) {
+
+	// Verify connection
+
+	if (_TelnetClient) {
+
+		if (calledByHandleEvent) { // To reduce overhead
+
+			if (!_TelnetClient->connected()) { // Not connected ?
+
+				if (_debugDebuggerEnabled) { // If debugger is enabled -> disable it
+					_debugDebuggerEnabled = false;
+				}
+			}
+		}
+
+	} else {
+		_debugDebuggerEnabled = false;
+	}
+
+	if (!_debugDebuggerEnabled) {
 		return;
 	}
 #endif
