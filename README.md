@@ -385,11 +385,11 @@ This is do by callbacks in __RemoteDebug__
 
 ### 0.9.1 - 2019-02-29
 
-  - Adjustment: the debugger still disable until dbg command, equal to SerialDebug
-  - Changed to one debugHandleDebugger routine
-  - Add debugSetDebuggerEnabled routine
-  - Changed handle debugger logic
-  
+    - Adjustment: the debugger still disable until dbg command, equal to SerialDebug
+    - Changed to one debugHandleDebugger routine
+    - Add debugSetDebuggerEnabled routine
+    - Changed handle debugger logic
+
 ### 0.9.0 - 2019-02-28
 
     - First beta
