@@ -324,8 +324,6 @@ debugAddGlobalInt("mIntArray[4]", &mIntArray[4]);
 
 ```
 
-Note: Has a converter to do it for You: [SerialDebugConverter](https://github.com/JoaoLopesF/SerialDebugConverter)
-
 The debugger allow add watches, it is usefull to warning when the content of global variable,
 is changed or reaches a certain condition.
 
