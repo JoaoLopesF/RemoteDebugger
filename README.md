@@ -1,11 +1,14 @@
 # RemoteDebugger Library for Arduino
+
 Addon library to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__: An Simple Software Debugger, based on __[SerialDebug](https://github.com/JoaoLopesF/SerialDebug)__
 
-<a href="#releases">![build badge](https://img.shields.io/badge/version-v0.9.1-blue.svg)</a> 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9c53789a82d4d40b8be068d4aa8bc15)](https://app.codacy.com/app/JoaoLopesF/RemoteDebugger?utm_source=github.com&utm_medium=referral&utm_content=JoaoLopesF/RemoteDebugger&utm_campaign=Badge_Grade_Settings)
-<a href="https://github.com/JoaoLopesF/SerialDebug/blob/master/LICENSE.txt">![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)</a>
+![logo](extras/readme_media/logo.png)
 
-__RemoteDebuggger__ is an addon to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__ library, 
+[![build badge](https://img.shields.io/badge/version-v0.9.1-blue.svg)](#releases)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9c53789a82d4d40b8be068d4aa8bc15)](https://app.codacy.com/app/JoaoLopesF/RemoteDebugger?utm_source=github.com&utm_medium=referral&utm_content=JoaoLopesF/RemoteDebugger&utm_campaign=Badge_Grade_Settings)
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/JoaoLopesF/RemoteDebugger/blob/master/LICENSE.txt)
+
+__RemoteDebuggger__ is an addon to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__ library,
 with and __simple software debugger__,
 to see/change global variables, to add watch for these variables,
 or call a function, in runtime, using commands by telnet.
@@ -37,17 +40,18 @@ __[SerialDebug](https://github.com/JoaoLopesF/SerialDebug)__ is an library to Im
 It is made for serial debugging over USB conexion. And it have a simple sofware debugger, simple but functional,
 and not need a extra hardware to do it.
 
-Yes, now we can use this debugger, 
+Yes, now we can use this debugger,
 
 __RemoteDebuggger__ (this library), is a addon to __RemoteDebug__, to implement the simple software debugger,
 based in __SerialDebug__.
 
 Notes:
+
 - This not good as a real hardware debugger, as GBD with JTAG USB hardware.
-  And hardware debuggers require skills to configure and use. 
+  And hardware debuggers require skills to configure and use.
   Few Arduino developers use it (e.g. Arduino IDE not have this feature).
   But RemoteDebugger is simple and funcional and works wireless, by WiFi (telnet connection).
-- This not is a C++ class, like __RemoteDebug__, 
+- This not is a C++ class, like __RemoteDebug__,
   due keep code compatibility with __SerialDebug__.
   With it, all your debugger codes, by serial or telnet, is same.
 
@@ -65,11 +69,11 @@ Image:
 
 ### 2019-02-28
 
-  - The new version of __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__, the 2.0.0, implements an support to __RemoteDebuggger__, few code added, just some callbacks. Please update this, if you have olders versions of RemoteDebug.
+- The new version of __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__, the 2.0.0, implements an support to __RemoteDebuggger__, few code added, just some callbacks. Please update this, if you have olders versions of RemoteDebug.
 
 ## Beta version
 
-This is a beta version. 
+This is a beta version.
 Not yet fully tested, optimized, and documented.
 
 This is a previous documentation.
@@ -79,12 +83,12 @@ It will be better documented before first RC version.
 
 Contribute to this library development by creating an account on GitHub.
 
-Please give a star, if you find this library usefull, 
+Please give a star, if you find this library usefull,
 this help a another people, discover it too.
 
 Please add a issue for problems or suggestion.
 
-I suggest you use a Github Desktop New app to clone, 
+I suggest you use a Github Desktop New app to clone,
 it help to keep updated.
 
 ## Benefits
@@ -100,11 +104,11 @@ This debugger is __optimized__ for features that it have:
 
   For simple software debugger, have memory optimizations:
 
-  - No fixed arrays, is used C++ Vector to dynamic arrays
+- No fixed arrays, is used C++ Vector to dynamic arrays
 
-  - Is used void* pointer to store values, when it is need.
-    Is more complicate, but it dramatically reduces use of memory,
-    compared to store 17 variables for support 17 kinds of this.
+- Is used void* pointer to store values, when it is need.
+  s more complicate, but it dramatically reduces use of memory,
+  compared to store 17 variables for support 17 kinds of this.
 
   Note: due a extra overhead in processing simple software debugger,
         it starts disabled. You can enable when you need (dbg command)
@@ -117,15 +121,15 @@ __RemoteDebug__ process commands by telnet connection.
 __RemoteDebuggger__ receive it by callbacks and process predefined commands as:
 
       f -> call the function
-          f ?  -> to show more help 
+          f ?  -> to show more help
 
       dbg [on|off] -> enable/disable the simple software debugger
 
       Only if debugger is enabled:
           g -> see/change global variables
-            g ?  -> to show more help 
+            g ?  -> to show more help
           wa -> see/change watches for global variables
-            wa ?  -> to show more help 
+            wa ?  -> to show more help
 
       Not yet implemented:
         gpio -> see/control gpio
@@ -145,7 +149,7 @@ For simple software debugger:
       - To disable: dbg off
 
       Note: the debugger starts disabled, to avoid extra overhead to processing it
-      You can enable it when need 
+      You can enable it when need
 
     - For global variables:
 
@@ -169,7 +173,6 @@ For simple software debugger:
       - To nonstop on watches: wa ns
       - To stop on watches: wa s
 
-  
 ## Install
 
 Just download or clone this repository.
@@ -191,19 +194,19 @@ Place it, after include of RemoteDebug:
 ```cpp
 // RemoteDebug addon library: RemoteDebugger, an Simple software debugger - based on SerialDebug Library
 
-#include "RemoteDebugger.h"		//https://github.com/JoaoLopesF/RemoteDebugger
+#include "RemoteDebugger.h"    //https://github.com/JoaoLopesF/RemoteDebugger
 ```
 
 ### setup
 
-Converter: 
+Converter:
 
   __RemoteDebugger__ has a converter to help add this debugger to your Arduino codes,
   that uses __RemoteDebug__ library.
 
   [RemoteDebuggerConverter](https://github.com/JoaoLopesF/RemoteDebuggerConverter)
 
-To do it manually: 
+To do it manually:
 
 Place it, after the RemoteDebug commands (Debug.begin, Debug.set...)
 
@@ -375,7 +378,7 @@ debugAddWatchCross("mRunMinutes", DEBUG_WATCH_EQUAL, "mRunSeconds");
 ### loop
 
 __RemoteDebuggger__ not need any extra code, as handle.
-This is do by callbacks in __RemoteDebug__ 
+This is do by callbacks in __RemoteDebug__
 
 ## Khow issues
 
@@ -383,7 +386,7 @@ This is do by callbacks in __RemoteDebug__
 
 ## Releases
 
-### 0.9.1 - 2019-02-29
+### 0.9.1 - 2019-03-01
 
     - Adjustment: the debugger still disable until dbg command, equal to SerialDebug
     - Changed to one debugHandleDebugger routine
@@ -405,7 +408,7 @@ I recommend, is very good IDE, with refactoring and anothers good features of Ec
 Special thanks to:
 
     - Arduino, for bring open hardware to us.
-    
+
     - Espressif, to bring good IoT boards to us.
 
     - Good people, that work hard, to bring to us excellent open source,
