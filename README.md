@@ -181,6 +181,7 @@ Or for Arduino IDE, you  can use the library manager to install and update the l
 For install help, please see: [https://www.arduino.cc/en/Guide/Libraries](https://www.arduino.cc/en/Guide/Libraries)
 
 ![install](extras/readme_media/install.png)
+_Note: insure that both libraries are installed_
 
 Please open the example project, to see it working.
 
