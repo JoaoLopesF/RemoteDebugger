@@ -181,7 +181,7 @@ You can use the library manager to install and update the library.
 
 For install help, please see: [https://www.arduino.cc/en/Guide/Libraries](https://www.arduino.cc/en/Guide/Libraries)
 
-Please open the example project, to see it working:
+Please open the example project, to see it working.
 
 ## Usage
 
