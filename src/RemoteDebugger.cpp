@@ -8,7 +8,8 @@
  *
  * Versions:
  *  ------	----------	-----------------
- *  0.9.1	2019-02-28	Adjustment: the debugger still disable until dbg command, equal to SerialDebug
+ *  0.9.2	2019-03-04	Adjustments in example
+ *  0.9.1	2019-03-01	Adjustment: the debugger still disable until dbg command, equal to SerialDebug
  *                      Changed to one debugHandleDebugger routine
  *                      Add debugSetDebuggerEnabled routine
  *                      Changed handle debugger logic
@@ -138,7 +139,9 @@
 
 //////// Defines
 
-#define DEBUGGER_VERSION "0.9.1"
+// Version
+
+#define DEBUGGER_VERSION "0.9.2"
 
 // Low memory board ?
 

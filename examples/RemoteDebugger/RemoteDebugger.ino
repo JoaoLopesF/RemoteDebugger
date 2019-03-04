@@ -1,9 +1,8 @@
-
 ////////
-// Libraries Arduino
-//
 // Library: Remote debug - debug over telnet - for Esp8266 (NodeMCU) or ESP32
-// Author: Joao Lopes
+// Author : Joao Lopes
+// File   : RemoteDebugger.ino
+// Notes  :
 //
 // Attention: This library is only for help development. Please not use this in production
 //
@@ -13,14 +12,16 @@
 //
 // Example of use:
 //
+//#ifndef DEBUG_DISABLED
 //        if (Debug.isActive(Debug.<level>)) { // <--- This is very important to reduce overheads and work of debug levels
 //            Debug.printf("bla bla bla: %d %s\n", number, str);
 //            Debug.println("bla bla bla");
 //        }
+//#endif
 //
 // Or short way (prefered if only one debug at time)
 //
-//		debugAln("This is a any (always showed) - var %d", var);
+//		debugA("This is a any (always showed) - var %d", var);
 //
 //		debugV("This is a verbose - var %d", var);
 //		debugD("This is a debug - var %d", var);
@@ -29,28 +30,75 @@
 //		debugE("This is a error - var %d", var);
 //
 //		debugV("This is println");
-////
+//
 ///////
 
-// Libraries
+////// Defines
 
-#if defined (ESP8266)
+// Host name (please change it)
 
-#define USE_MDNS true // Use the MDNS ?
+#define HOST_NAME "remotedebug"
 
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+// Board especific libraries
+
+#if defined ESP8266 || defined ESP32
+
+// Use mDNS ? (comment this do disable it)
+
+#define USE_MDNS true
+
+// Arduino OTA (uncomment this to enable)
+
+//#define USE_ARDUINO_OTA true
+
+#else
+
+// RemoteDebug library is now only to Espressif boards,
+// as ESP32 and ESP82266,
+// If need for another WiFi boards,
+// please add an issue about this
+// and we will see if it is possible made the port for your board.
+// access: https://github.com/JoaoLopesF/RemoteDebug/issues
+
+#error "The board must be ESP8266 or ESP32"
+
+#endif // ESP
+
+// Web server (uncomment this to need this)
+
+//#define WEB_SERVER_ENABLED true
+
+// Disable all debug ?
+//
+// Important to compile for prodution/release
+// Disable all debug ? Good to release builds (production)
+// as nothing of RemoteDebug is compiled, zero overhead :-)
+// For it just uncomment the DEBUG_DISABLED
+// On change it, if in another IDE than Arduino IDE, like Eclipse or VSCODE,
+// please clean the project, before compile
+
+//#define DEBUG_DISABLED true
+
+////// Includes
+
+#if defined ESP8266
+
+// Includes of ESP8266
+
+#include <ESP8266WiFi.h>
+
+#ifdef USE_MDNS
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
+#endif
 
-//#include <ESP8266WebServer.h> // Discomment if you need web server`
+#ifdef WEB_SERVER_ENABLED
+#include <ESP8266WebServer.h>
+#endif
 
-#define USE_ARDUINO_OTA true
+#elif defined ESP32
 
-#elif defined(ESP32)
-
-#define USE_MDNS true // Use the MDNS ?
-
-// Includes do ESP32
+// Includes of ESP32
 
 #include <WiFi.h>
 
@@ -59,71 +107,73 @@
 #include "ESPmDNS.h"
 #endif
 
-#define USE_ARDUINO_OTA
+#ifdef WEB_SERVER_ENABLED
+#include <WebServer.h>
+#endif
 
 #else
 
-#error "The board must be ESP8266 or ESP32"
+#error "Now RemoteDebug support only boards Espressif, as ESP8266 and ESP32"
 
 #endif // ESP
+
+// Arduino OTA
 
 #ifdef USE_ARDUINO_OTA
 #include <ArduinoOTA.h>
 #endif
 
-// Production
+// HTTP Web server
 
-//#define PRODUCTION true
+#ifdef WEB_SERVER_ENABLED
 
-// HTTP Web server - discomment if you need this
-//#if defined ESP8266
-//ESP8266WebServer HTTPServer(80);
-//#elif defined ESP32
-//WebServer HTTPServer(80);
-//#endif
+#if defined ESP8266
 
-// Remote debug over telnet - not recommended for production, only for development
-// I put it to show how to do code clean to development and production
+ESP8266WebServer HTTPServer(80);
 
-#ifndef PRODUCTION // Not in PRODUCTION
+#elif defined ESP32
+
+WebServer HTTPServer(80);
+
+#endif
+
+#endif // WEB_SERVER_ENABLED
+
+// Remote debug over telnet - not recommended for production/release, only for development
 
 #include "RemoteDebug.h"        //https://github.com/JoaoLopesF/RemoteDebug
+
+#ifndef DEBUG_DISABLED // Only if debug is not disabled (for production/release)
 
 // RemoteDebug addon library: RemoteDebugger, an Simple software debugger - based on SerialDebug Library
 
 #include "RemoteDebugger.h"		//https://github.com/JoaoLopesF/RemoteDebugger
 
-// Instance
+// Instance of RemoteDebug
 
-RemoteDebug Debug; // @suppress("Abstract class cannot be instantiated")
+RemoteDebug Debug;
 
 #endif
 
-// Host name
+// WiFi credentials
+// Note: if commented, is used the smartConfig
+// That allow to it in mobile app
+// See more details in http://www.iotsharing.com/2017/05/how-to-use-smartconfig-on-esp32.html
 
-#define HOST_NAME "rem-debug" // PLEASE CHANGE IT
+//#define WIFI_SSID "..."  // your network SSID (name)
+//#define WIFI_PASS "..."  // your network key
 
-// Time
-
-uint32_t mLastTime = 0;
-
-// Buildin Led ON ?
-
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 2
-#endif
-
-boolean mLedON = false;
-
-////// Variables
+/////// Variables
 
 // Time
+
+uint32_t mTimeToSec = 0;
 
 uint8_t mRunSeconds = 0;
 uint8_t mRunMinutes = 0;
 uint8_t mRunHours = 0;
 
-// Globals for this example
+// Globals for example of debugger
 
 boolean mBoolean = false;
 char mChar = 'X';
@@ -149,14 +199,16 @@ int mIntArray[5] = {1 ,2 ,3, 4, 5};
 
 void setup() {
 
-	// Initialize the Serial (educattional use only, not need in production)
+	// Initialize the Serial (use only in setup codes)
 
 	Serial.begin(230400);
 
-	// Buildin led of ESP
+	// Buildin led
 
+#ifdef LED_BUILTIN
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
+#endif
 
 	// Connect WiFi
 
@@ -176,50 +228,54 @@ void setup() {
 
 	// Register host name in mDNS
 
-#if defined (USE_MDNS) && defined(HOSTNAME)
+#if defined USE_MDNS && defined HOST_NAME
+
 	if (MDNS.begin(HOST_NAME)) {
 		Serial.print("* MDNS responder started. Hostname -> ");
 		Serial.println(HOST_NAME);
 	}
+
 	// Register the services
 
-	// MDNS.addService("http", "tcp", 80);   // Web server - discomment if you need this
+#ifdef WEB_SERVER_ENABLED
+	MDNS.addService("http", "tcp", 80);   // Web server
+#endif
 
+#ifndef DEBUG_DISABLED
 	MDNS.addService("telnet", "tcp", 23);// Telnet server RemoteDebug
 #endif
 
+#endif // MDNS
+
 	// HTTP web server
-	// Discomment if you need this
-	//
-	// HTTPServer.on("/", handleRoot);
-	//
-	// HTTPServer.onNotFound(handleNotFound);
-	//
-	// HTTPServer.begin();
-//
-// #ifndef PRODUCTION // Not in PRODUCTION
-//     Serial.println("* HTTP server started");
-// #endif
+
+#ifdef WEB_SERVER_ENABLED
+	 HTTPServer.on("/", handleRoot);
+
+	 HTTPServer.onNotFound(handleNotFound);
+
+	 HTTPServer.begin();
+
+	 Serial.println("* HTTP server started");
+#endif
+
+#ifndef DEBUG_DISABLED // Only for development
 
 	// Initialize the telnet server of RemoteDebug
 
-#ifndef PRODUCTION // Not in PRODUCTION
-
 	Debug.begin(HOST_NAME); // Initiaze the telnet server
 
-//	Debug.setPassword("r3m0t0."); // Set password to connect on telnet
+	//Debug.setPassword("r3m0t0."); // Password on telnet connection ?
 
 	Debug.setResetCmdEnabled(true); // Enable the reset command
 
-	//Debug.showDebugLevel(false); // To not show debug levels
-	//Debug.showTime(true); // To show time
-	//Debug.showProfiler(true); // To show profiler - time between messages of Debug
-	// Good to "begin ...." and "end ...." messages
+	Debug.showProfiler(true); // Profiler (Good to measure times, to optimize codes)
 
-	Debug.showProfiler(true); // Profiler
 	Debug.showColors(true); // Colors
 
-	//Debug.setSerialEnabled(true); // if you wants serial echo - only recommended if ESP is plugged in USB
+	// Debug.setSerialEnabled(true); // if you wants serial echo - only recommended if ESP is plugged in USB
+
+	// Project commands
 
 	String helpCmd = "bench1 - Benchmark 1\n";
 	helpCmd.concat("bench2 - Benchmark 2");
@@ -228,6 +284,8 @@ void setup() {
 	Debug.setCallBackProjectCmds(&processCmdRemoteDebug);
 
 	// Init the simple software debugger, based on SerialDebug library
+
+#ifndef DEBUG_DISABLE_DEBUGGER
 
 	Debug.initDebugger(debugGetDebuggerEnabled, debugHandleDebugger, debugGetHelpDebugger, debugProcessCmdDebugger); // Set the callbacks
 
@@ -329,7 +387,9 @@ void setup() {
 
 	debugAddWatchCross("mRunMinutes", DEBUG_WATCH_EQUAL, "mRunSeconds");
 
-	// This sample
+#endif
+
+	// End of setup - show IP
 
 	Serial.println("* Arduino RemoteDebug Library");
 	Serial.println("*");
@@ -349,21 +409,20 @@ void setup() {
 
 }
 
-
 void loop() {
 
-#ifndef PRODUCTION // Not in PRODUCTION
+#ifndef DEBUG_DISABLED
 	// Time of begin of this loop
 	uint32_t timeBeginLoop = millis();
 #endif
 
 	// Each second
 
-	if (millis() >= mLastTime) {
+	if (millis() >= mTimeToSec) {
 
-		// Save time of new second
+		// Time
 
-		mLastTime = millis() + 1000;
+		mTimeToSec = millis() + 1000;
 
 		// Count run time (just a test - for real suggest the TimeLib and NTP, if board have WiFi)
 
@@ -383,16 +442,15 @@ void loop() {
 
 		// Blink the led
 
-		mLedON = !mLedON;
-		digitalWrite(LED_BUILTIN, (mLedON) ? LOW : HIGH);
+#ifdef LED_BUILTIN
+		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+#endif
 
-#ifndef PRODUCTION // Not in PRODUCTION
-
-		// Debug the time (verbose level) (without shortcut)
+		// Debug the time (verbose level)
 
 		debugV("* Time: %u seconds (VERBOSE)", mRunSeconds);
 
-		if (mRunSeconds % 10 == 0) { // Each 5 seconds
+		if (mRunSeconds % 5 == 0) { // Each 5 seconds
 
 			// Debug levels
 
@@ -402,9 +460,25 @@ void loop() {
 			debugW("* This is a message of debug level WARNING");
 			debugE("* This is a message of debug level ERROR");
 
-			foo();
-		}
+
+			// RemoteDebug isActive? Use this RemoteDebug sintaxe if you need process anything only for debug
+			// It is good to avoid overheads (this is only use that is suggest to use isActive)
+			// Note this need be surrounded by DEBUG_DISABLED precompiler condition to not compile for production/release
+
+#ifndef DEBUG_DISABLED
+
+			if (Debug.isActive(Debug.VERBOSE)) {
+
+				Debug.println("Calling a foo function");
+				Debug.printf("At time of %d sec.\n", mRunSeconds);
+
+				// Call a function
+
+				foo();
+			}
 #endif
+
+		}
 	}
 
 	////// Services on Wifi
@@ -415,26 +489,24 @@ void loop() {
 	ArduinoOTA.handle();
 #endif
 
-	//// Web server
-	// Discomment if you need this
-	//
-	// HTTPServer.handleClient();
+#ifdef WEB_SERVER_ENABLED
+	// Web server
 
-#ifndef PRODUCTION // Not in PRODUCTION
+	HTTPServer.handleClient();
+#endif
 
+#ifndef DEBUG_DISABLED
 	// Remote debug over telnet
 
 	Debug.handle();
-
 #endif
 
 	// Give a time for ESP
 
 	yield();
 
+#ifndef DEBUG_DISABLED
 	// Show a debug - warning if time of these loop is over 50 (info) or 100 ms (warning)
-
-#ifndef PRODUCTION // Not in PRODUCTION
 
 	uint32_t time = (millis() - timeBeginLoop);
 
@@ -447,6 +519,7 @@ void loop() {
 
 }
 
+
 // Function example to show a new auto function name of debug* macros
 
 void foo() {
@@ -457,8 +530,7 @@ void foo() {
   debugV("This is a println");
 }
 
-
-#ifndef PRODUCTION // Not in PRODUCTION
+#ifndef DEBUG_DISABLED
 
 // Process commands from RemoteDebug
 
@@ -617,7 +689,7 @@ void funcArgInt (int number) {
 	debugA("*** called with arg.: %d", number);
 }
 
-///// WiFi
+////// WiFi
 
 void connectWiFi() {
 
@@ -635,7 +707,11 @@ void connectWiFi() {
 
 	// Connect with SSID and password stored
 
+#ifndef WIFI_SSID
 	WiFi.begin();
+#else
+	WiFi.begin(WIFI_SSID, WIFI_PASS);
+#endif
 
 	// Wait connection
 
@@ -650,6 +726,7 @@ void connectWiFi() {
 
 	if (WiFi.status() != WL_CONNECTED) {
 
+#ifndef WIFI_SSID
 		// SmartConfig
 
 		WiFi.beginSmartConfig();
@@ -674,6 +751,10 @@ void connectWiFi() {
 			delay(500);
 			Serial.print(".");
 		}
+#else
+		Serial.println("Not possible connect to WiFi, rebooting");
+		ESP.restart();
+#endif
 	}
 
 	// End
@@ -748,32 +829,35 @@ void initializeOTA() {
 
 #endif
 
+#ifdef WEB_SERVER_ENABLED
+
 /////////// Handles
-// Discomment if you need this
-//
-// void handleRoot() {
-//
-//     // Root web page
-//
-//     HTTPServer.send(200, "text/plain", "hello from esp - RemoteDebug Sample!");
-// }
-//
-// void handleNotFound(){
-//
-//     // Page not Found
-//
-//     String message = "File Not Found\n\n";
-//     message.concat("URI: ");
-//     message.concat(HTTPServer.uri());
-//     message.concat("\nMethod: ");
-//     message.concat((HTTPServer.method() == HTTP_GET)?"GET":"POST");
-//     message.concat("\nArguments: ");
-//     message.concat(HTTPServer.args());
-//     message.concat("\n");
-//     for (uint8_t i=0; i<HTTPServer.args(); i++){
-//         message.concat(" " + HTTPServer.argName(i) + ": " + HTTPServer.arg(i) + "\n");
-//     }
-//     HTTPServer.send(404, "text/plain", message);
-// }
+
+ void handleRoot() {
+
+     // Root web page
+
+     HTTPServer.send(200, "text/plain", "hello from esp - RemoteDebug Sample!");
+ }
+
+ void handleNotFound(){
+
+     // Page not Found
+
+     String message = "File Not Found\n\n";
+     message.concat("URI: ");
+     message.concat(HTTPServer.uri());
+     message.concat("\nMethod: ");
+     message.concat((HTTPServer.method() == HTTP_GET)?"GET":"POST");
+     message.concat("\nArguments: ");
+     message.concat(HTTPServer.args());
+     message.concat("\n");
+     for (uint8_t i=0; i<HTTPServer.args(); i++){
+         message.concat(" " + HTTPServer.argName(i) + ": " + HTTPServer.arg(i) + "\n");
+     }
+     HTTPServer.send(404, "text/plain", message);
+ }
+
+#endif
 
 /////////// End
