@@ -4,6 +4,7 @@ Addon library to __[RemoteDebug](https://github.com/JoaoLopesF/RemoteDebug)__: A
 
 ![logo](extras/readme_media/logo.png)
 
+[![arduino-library-badge](https://www.ardu-badge.com/badge/RemoteDebugger.svg?)](https://www.ardu-badge.com/RemoteDebugger)
 [![GitHub release](https://img.shields.io/github/release/JoaoLopesF/RemoteDebugger.svg)](#releases)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9c53789a82d4d40b8be068d4aa8bc15)](https://app.codacy.com/app/JoaoLopesF/RemoteDebugger?utm_source=github.com&utm_medium=referral&utm_content=JoaoLopesF/RemoteDebugger&utm_campaign=Badge_Grade_Settings)
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/JoaoLopesF/RemoteDebugger/blob/master/LICENSE.txt)
