@@ -179,7 +179,8 @@ For simple software debugger:
 Just download or clone this repository.
 
 Or for Arduino IDE, you  can use the library manager to install and update the library.
-For install help, please see: [https://www.arduino.cc/en/Guide/Libraries](https://www.arduino.cc/en/Guide/Libraries)
+<!-- For install help, please see: [https://www.arduino.cc/en/Guide/Libraries](https://www.arduino.cc/en/Guide/Libraries) -->
+For install help, click on this: [![arduino-library-badge](https://www.ardu-badge.com/badge/RemoteDebugger.svg?)](https://www.ardu-badge.com/RemoteDebugger)
 
 ![install](extras/readme_media/install.png)
 _Note: insure that both libraries are installed_
