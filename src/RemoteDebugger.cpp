@@ -8,6 +8,7 @@
  *
  * Versions:
  *  ------	----------	-----------------
+ *  0.9.4	2019-03-16  Adjustments on example
  *  0.9.3	2019-03-13	Support to RemoteDebug with connection by web socket
  *                      debugBreak for RemoteDebug now is redirect to a debugSilence of RemoteDebug
  *  0.9.2	2019-03-04	Adjustments in example
@@ -143,7 +144,7 @@
 
 // Version
 
-#define DEBUGGER_VERSION "0.9.3"
+#define DEBUGGER_VERSION "0.9.4"
 
 // Low memory board ?
 
