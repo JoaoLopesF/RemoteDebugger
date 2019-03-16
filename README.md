@@ -392,6 +392,11 @@ This is do by callbacks in __RemoteDebug__
 
 ## Releases
 
+### 0.9.3 - 2019-03-16
+
+    - Support to RemoteDebug with connection by web socket
+    - debugBreak for RemoteDebug now is redirect to a debugSilence of RemoteDebug
+
 ### 0.9.2 - 2019-03-04
 
     - Adjustments in example
