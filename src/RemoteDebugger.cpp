@@ -8,6 +8,8 @@
  *
  * Versions:
  *  ------	----------	-----------------
+ *  0.9.3	2019-03-13	Support to RemoteDebug with connection by web socket
+ *                      debugBreak for RemoteDebug now is redirect to a debugSilence of RemoteDebug
  *  0.9.2	2019-03-04	Adjustments in example
  *  0.9.1	2019-03-01	Adjustment: the debugger still disable until dbg command, equal to SerialDebug
  *                      Changed to one debugHandleDebugger routine
@@ -141,7 +143,7 @@
 
 // Version
 
-#define DEBUGGER_VERSION "0.9.2"
+#define DEBUGGER_VERSION "0.9.3"
 
 // Low memory board ?
 
@@ -151,7 +153,9 @@
 
 /////// Variables - public
 
-//bool _debugSilence = false;						// Silent mode ? // TODO see it
+#ifdef DEBUGGER_FOR_SERIALDEBUG
+bool _debugSilence = false;						// Silent mode ?
+#endif
 //DEBUGGER_VAR_TYPE unsigned long _debugLastTime = millis(); 			// Last time show a debug
 
 DEBUGGER_VAR_TYPE uint8_t _debugFunctionsAdded = 0;					// Number of functions added
@@ -172,7 +176,7 @@ DEBUGGER_VAR_TYPE boolean _debugDebuggerEnabled = false;				// Simple Software D
 #ifdef DEBUGGER_FOR_REMOTEDEBUG
 
 static RemoteDebug *_Debug;							// Instance of RemoteDebug
-static WiFiClient *_TelnetClient;					// Telnet client
+//static WiFiClient *_TelnetClient;					// Telnet client
 
 #endif
 
@@ -477,11 +481,8 @@ static void printLibrary();
 #ifdef DEBUGGER_FOR_SERIALDEBUG
 	#define PRINTF(fmt, ...)   PRINTF(fmt, ##__VA_ARGS__)
 	#define PRINTFLN(fmt, ...) PRINTF(fmt "\r\n", ##__VA_ARGS__)
-    #define PRINTLN() 			PRINTF("\r\n")
+    #define PRINTLN() 		   PRINTF("\r\n")
 #else // RemoteDebug
-//	#define PRINTF(fmt, ...)   	if (_TelnetClient && _TelnetClient->connected()) _TelnetClient->printf(fmt, ##__VA_ARGS__)
-//	#define PRINTFLN(fmt, ...) 	if (_TelnetClient && _TelnetClient->connected()) { _TelnetClient->printf(fmt, ##__VA_ARGS__); _TelnetClient->println();}
-//	#define PRINTLN() 			if (_TelnetClient && _TelnetClient->connected()) _TelnetClient->println()
 	#define PRINTF(fmt, ...)   if (_Debug) {_Debug->showRaw(true);_Debug->printf(fmt, ##__VA_ARGS__);_Debug->showRaw(false);} // TODO: put ANY isactive
 	#define PRINTFLN(fmt, ...) if (_Debug) {_Debug->showRaw(true);_Debug->printf(fmt, ##__VA_ARGS__);_Debug->println();_Debug->showRaw(false);}
 	#define PRINTLN() 		   if (_Debug) {_Debug->showRaw(true);_Debug->println();_Debug->showRaw(false);}
@@ -499,7 +500,8 @@ static void printLibrary();
 // Debug internal, all must commented on release
 
 #define D(fmt, ...)
-//#define D(fmt, ...) PRINTF("$dbg: " fmt "\r\n", ##__VA_ARGS__)
+//#define D(fmt, ...) PRINTF("rdbg: " fmt "\r\n", ##__VA_ARGS__)
+//#define D(fmt, ...) Serial.printf("rdbg: " fmt "\r\n", ##__VA_ARGS__)
 
 /////// Methods
 
@@ -517,17 +519,17 @@ void debugInitDebugger (RemoteDebug *Debug) {
 
 	_Debug = Debug; // Instance of RemoteDebug
 
-	_TelnetClient = _Debug->getTelnetClient(); // Instance of Telnet client
+//	_TelnetClient = _Debug->getTelnetClient(); // Instance of Telnet client
 }
 #endif
 
 ////// Handles
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 // Silence
 
 void debugSilence(boolean activate, boolean showMessage, boolean fromBreak) {
 
-#ifdef DEBUGGER_FOR_SERIALDEBUG
 	_debugSilence = activate;
 
 	//D("silence %d", _debugSilence);
@@ -544,12 +546,6 @@ void debugSilence(boolean activate, boolean showMessage, boolean fromBreak) {
 		printLibrary();
 		PRINTFLN(F("Debug now exit from silent mode"));
 	}
-#else // RemoteDebug
-
-	if (_Debug) {
-		_Debug->silence(activate, showMessage);
-	}
-#endif
 
 #ifndef DEBUG_MINIMUM
 	if (_debugApp && !fromBreak) { // For DebugSerialApp connection ?
@@ -561,7 +557,7 @@ void debugSilence(boolean activate, boolean showMessage, boolean fromBreak) {
 #endif // DEBUG_MINIMUM
 
 }
-
+#endif // DEBUGGER_FOR_SERIALDEBUG
 
 // Print name of library in begin for messages
 // Note: It is done to reduce Program memory consupmition - for low memory boards support
@@ -581,9 +577,13 @@ void printLibrary() {
 
 void debugProcessCmdDebugger() {
 
+	D("dggger");
 #ifdef DEBUGGER_FOR_REMOTEDEBUG
 	if (_Debug) {
 		String command = _Debug->getLastCommand();
+
+		D("cmd dbgger: ", command.c_str());
+
 		processCommand(command, false, true);
 	}
 #endif
@@ -650,7 +650,7 @@ String debugBreak(const __FlashStringHelper *ifsh, uint32_t timeout, boolean byW
 
 String debugBreak(const char* str, uint32_t timeout, boolean byWatch) {
 
-	//D("debugBreak - timeout %u", timeout);
+	D("debugBreak - timeout %u", timeout);
 
 	// Show a message
 
@@ -664,7 +664,15 @@ String debugBreak(const char* str, uint32_t timeout, boolean byWatch) {
 	} else if (timeout == DEBUG_BREAK_TIMEOUT) { // Is called by debugBreak() and not for watches ?
 
 		printLibrary();
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 		PRINTFLN(F("Press any key or command, and enter to continue"));
+#else
+		if (_Debug && ((_Debug->isConnected()))) {
+			PRINTFLN(F("Send any command or press the \"Silence\" button, to continue."));
+		} else {
+			PRINTFLN(F("Press any command, and enter to continue"));
+		}
+#endif
 		appBreakType = 'C';
 	}
 
@@ -682,25 +690,17 @@ String debugBreak(const char* str, uint32_t timeout, boolean byWatch) {
 	uint32_t lastTime = millis(); 			// Time of last receipt
 	char last = ' ';						// Last char received
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
+
 	// Enter in silence (if is not yet)
 
 	boolean oldSilence;
 
-#ifdef DEBUGGER_FOR_SERIALDEBUG
 	oldSilence= _debugSilence;		// In silence mode ?
-#else // RemoteDebug
-	if (_Debug) {
-		oldSilence = _Debug->getSilence();
-	} else {
-		oldSilence = false;
-	}
-#endif
 
 	if (!oldSilence) {
 		debugSilence(true, false, true);
 	}
-
-#ifdef DEBUGGER_FOR_SERIALDEBUG
 
 	// Ignore buffer
 
@@ -752,67 +752,6 @@ String debugBreak(const char* str, uint32_t timeout, boolean byWatch) {
 		delay(10); // Give a time
 	}
 
-#else // RemoteDebug
-
-	// Client connected ?
-
-	if (!_TelnetClient || !_TelnetClient->connected()) {
-		PRINTFLN("Attention: TelnetClient not ok");
-		return "";
-	}
-
-	// Ignore buffer
-
-	while (_TelnetClient->available()) {
-		_TelnetClient->read();
-	}
-
-	// Process serial data (until timeout, if informed)
-
-	while (timeout == 0 ||
-			((millis() - lastTime) <= timeout)){
-
-		if (_TelnetClient->available()) {
-
-		    // Get the new char:
-
-		    char character = (char)_TelnetClient->read();
-
-		    // Clear buffer if is a long time of last receipt
-
-		    if (response.length() > 0 && (millis() - lastTime) > 2000) {
-		    	response = "";
-		    }
-		    lastTime = millis(); // Save it
-
-			// Newline (CR or LF) - once one time if (\r\n)
-
-			if (isCRLF(character) == true) {
-
-				if (isCRLF(last) == false) { // New line -> return the command
-
-					//D("break");
-
-					break;
-				}
-
-			} else if (isPrintable(character)) { // Only valid
-
-				// Concat
-
-				response.concat(character);
-			}
-
-			// Last char
-
-			last = character;
-		}
-
-		delay(10); // Give a time
-	}
-
-#endif
-
 	if (_debugApp) { // For DebugSerialApp connection ?
 
 		PRINTFLN(F("$app:B:0"));
@@ -821,23 +760,31 @@ String debugBreak(const char* str, uint32_t timeout, boolean byWatch) {
 
 	// Is in silence ? (restore it)
 
-#ifdef DEBUGGER_FOR_SERIALDEBUG
 	if (_debugSilence && !oldSilence) {
 		debugSilence(false, false, true);
 	}
+
 #else // RemoteDebug
-	if (_Debug && _Debug->getSilence() && !oldSilence) {
-		debugSilence(false, false, true);
+
+	// Client connected ?
+
+	if (_Debug) {
+
+		if (!(_Debug->isConnected())) {
+			return "";
+		}
+
+		// Break on RemoteDebug is only using silente mode and not returns nothing
+		// TODO: improve this
+
+		D("silence");
+		_Debug->silence(true, false, true, timeout);
 	}
 #endif
 
-	//D("response -> %s", response.c_str());
-
-	// Response (tolower always)
-	// response.toLowerCase();
-
 	return response;
 }
+
 
 // Process command receipt by serial (Arduino monitor, etc.)
 
@@ -856,7 +803,7 @@ static void processCommand(String& command, boolean repeating, boolean showError
 
 #endif
 
-	//D(F("Command: %s last: %s"), command.c_str(), _debugLastCommand.c_str());
+	D("Command: %s last: %s", command.c_str(), _debugLastCommand.c_str());
 
 	// Disable repeating
 
@@ -925,25 +872,27 @@ static void processCommand(String& command, boolean repeating, boolean showError
 
 	if (command == "dbg") {
 
-//		// Help ?
-//
-//		if (options == "h" || options == "help" || options == "?") {
-//
-//			// Show help
-//
-//			showHelp();
-//
-//			// Do a break
-//
-//			String response = debugBreak("", DEBUG_BREAK_TIMEOUT, true);
-//
-//			if (response.length() > 0) { // Process command
-//
-//				processCommand(response, false);
-//			}
-//
-//			return;
-//		}
+#ifdef DEBUGGER_FOR_SERIALDEBUG
+		// Help ?
+
+		if (options == "h" || options == "help" || options == "?") {
+
+			// Show help
+
+			showHelp();
+
+			// Do a break
+
+			String response = debugBreak("", DEBUG_BREAK_TIMEOUT, true);
+
+			if (response.length() > 0) { // Process command
+
+				processCommand(response, false);
+			}
+
+			return;
+		}
+#endif
 
 #ifndef BOARD_LOW_MEMORY // Not for low memory boards
 
@@ -956,7 +905,7 @@ static void processCommand(String& command, boolean repeating, boolean showError
 			_debugWatchStop = false; // disable it for now
 
 		}
-#endif // Not low memory board
+#endif
 
 		// Globals or functions added ?
 
@@ -976,15 +925,18 @@ static void processCommand(String& command, boolean repeating, boolean showError
 			_debugDebuggerEnabled = !_debugDebuggerEnabled; // invert it
 		}
 
+		// Process handle to update globals
+
+		debugHandleDebugger(true);
+
+		// Is from app ?
+
 		if (_debugApp) { // For Debug App connection ?
 
 			// Debugger enabled ?
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 			if (_debugDebuggerEnabled) {
-
-				// Process handle to update globals
-
-				debugHandleDebugger(true);
 
 				// Send debugger elements
 
@@ -1017,6 +969,10 @@ static void processCommand(String& command, boolean repeating, boolean showError
 				PRINTFLN(F("End of sending."));
 
 			}
+#else // RemoteDebug
+
+			// TODO: sending not is necessary, due app not have a screen for debugger
+#endif
 
 			// Send status
 
@@ -1122,6 +1078,7 @@ static void processCommand(String& command, boolean repeating, boolean showError
 		} else { // Start repeats
 
 			printLibrary();
+			// TODO: verify it
 			PRINTFLN(F("Start repeating command: %s - press any command or enter to stop"), _debugLastCommand.c_str());
 			_debugRepeatCommand = true;
 		}
@@ -1214,20 +1171,15 @@ void debugHandleDebugger (const boolean calledByHandleEvent) {
 
 	// Verify connection
 
-	if (_TelnetClient) {
-
-		if (calledByHandleEvent) { // To reduce overhead
-
-			if (!_TelnetClient->connected()) { // Not connected ?
-
-				if (_debugDebuggerEnabled) { // If debugger is enabled -> disable it
-					_debugDebuggerEnabled = false;
-				}
+	if (_Debug) {
+		
+		if (!(_Debug->isConnected())) { // Not connected ?
+			if (_debugDebuggerEnabled) { // If debugger is enabled -> disable it
+				_debugDebuggerEnabled = false;
 			}
 		}
+		_debugApp = _Debug->wsIsConnected();
 
-	} else {
-		_debugDebuggerEnabled = false;
 	}
 
 	if (!_debugDebuggerEnabled) {
@@ -1241,10 +1193,11 @@ void debugHandleDebugger (const boolean calledByHandleEvent) {
 
 #ifdef BOARD_ENOUGH_MEMORY // Modern and faster board ?
 
-		boolean process = _debugApp; // Always process for app
+//		boolean process = _debugApp; // Always process for app
+		boolean process = calledByHandleEvent; // Only by event, app not showing vars on debugger screen yet
 
 #else
-		boolean process = _debugApp && calledByHandleEvent; //false;
+		boolean process = _debugApp && calledByHandleEvent;
 #endif
 		debugGlobal_t *global = &_debugGlobals[g];
 
@@ -1309,11 +1262,13 @@ void debugHandleDebugger (const boolean calledByHandleEvent) {
 
 						getStrValue(global->type, global->pointer, global->showLength, false, value, type);
 
+#ifdef DEBUGGER_SEND_INFO
 						// Send it
 
 						if (_debugApp) {
 							PRINTFLN(F("$app:C:%u:%s"), (g + 1), value.c_str());
 						}
+#endif
 					}
 				}
 
@@ -1403,18 +1358,20 @@ void debugHandleDebugger (const boolean calledByHandleEvent) {
 
 					showWatch(w, false);
 
+#ifdef DEBUGGER_SEND_INFO
 					if (_debugApp) { // App ?
 						PRINTFLN(F("$app:T:%u:1"), (w + 1));
 					}
-
+#endif
 				} else if (watch->triggered && !triggered) { // Unmark it
 
 					watch->triggered = false;
 
+#ifdef DEBUGGER_SEND_INFO
 					if (_debugApp) { // App ?
 						PRINTFLN(F("$app:T:%u:0"), (w + 1));
 					}
-
+#endif
 				}
 			}
 		}
@@ -1426,9 +1383,17 @@ void debugHandleDebugger (const boolean calledByHandleEvent) {
 			printLibrary();
 			PRINTFLN(F("%u watch(es) has triggered."), totTriggered);
 			printLibrary();
-			PRINTFLN(F("Press enter to continue"));
+#ifdef DEBUGGER_FOR_SERIALDEBUG
+		PRINTFLN(F("Press enter to continue"));
+#else
+		if (_Debug && ((_Debug->isConnected()))) {
+			PRINTFLN(F("Send any command or press the \"Silence\" button, to continue."));
+		} else {
+			PRINTFLN(F("Press any command, and enter to continue"));
+		}
+#endif
 			printLibrary();
-			PRINTFLN(F("or another command as: reset(to reset) or ns(to not stop again)"));
+			PRINTFLN(F("Or another command as: reset(to reset) or ns(to not stop again)"));
 
 			// Do a break
 
@@ -5566,7 +5531,7 @@ static void callFunction(String& options) {
 	}
 #else // RemoteDebug
 
-	if (_Debug && _Debug->getSilence()) {
+	if (_Debug && _Debug->isSilence()) {
 		_Debug->silence(false, false);
 	}
 #endif
@@ -5674,12 +5639,25 @@ static void callFunction(String& options) {
 
 	// Do a break
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 	String response = debugBreak(F("Press enter to continue"), DEBUG_BREAK_TIMEOUT, true);
 
 	if (response.length() > 0) { // Process command
 
 		processCommand(response, false, false);
 	}
+
+#else
+	if (_Debug && ((_Debug->wsIsConnected()))) {
+
+		debugBreak(F("Send any command to continue, or press the \"Silence\" button, to continue."), DEBUG_BREAK_TIMEOUT, true);
+
+	} else {
+
+		debugBreak(F("Press enter to continue"), DEBUG_BREAK_TIMEOUT, true);
+
+	}
+#endif
 
 }
 
@@ -6098,7 +6076,13 @@ static void changeGlobal(Fields& fields) {
 
 	String globalId = fields.getString(1);
 	String value = fields.getString(3);
+#ifdef DEBUGGER_FOR_SERIALDEBUG
+	// Check if is to not confirm
 	boolean noConfirm = (fields.size() == 4 && fields.getChar(4) == 'y');
+#else
+	// Check if is to not confirm (or is app (not is possible confirmation on app))
+	boolean noConfirm = (_Debug && (!(_Debug->isConnected())))?true:(fields.size() == 4 && fields.getChar(4) == 'y');
+#endif
 
 	String type = "";
 	String tolower = "";

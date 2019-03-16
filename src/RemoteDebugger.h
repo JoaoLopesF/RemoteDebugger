@@ -83,7 +83,9 @@ typedef enum {										// Type of operator
 
 	// No debugs
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 	#define debugSilence(...)
+#endif
 
 	#define DEBUG_DISABLE_DEBUGGER true
 
@@ -151,7 +153,7 @@ typedef enum {										// Type of operator
 //////// Prototypes - public
 
 #ifdef DEBUGGER_FOR_SERIALDEBUG
-void debugInitDebugger (HardwareSerial *serialvoid (*callbackShowHelp)(), void (*callbackProcessCmd)(),
+void debugInitDebugger (HardwareSerial *serial, void (*callbackShowHelp)(), void (*callbackProcessCmd)(),
 						boolean *debuggerActive); // TODO: in future do both lib share this same code
 #else // RemoteDebug
 void debugInitDebugger (RemoteDebug *Debug);
@@ -174,7 +176,9 @@ String debugBreak(const char* str, uint32_t timeout = DEBUG_BREAK_TIMEOUT, boole
 	String debugBreak(String& str, uint32_t timeout = DEBUG_BREAK_TIMEOUT);
 #endif
 
+#ifdef DEBUGGER_FOR_SERIALDEBUG
 void debugSilence(boolean activate, boolean showMessage, boolean fromBreak = false);
+#endif
 
 // Debugger
 
