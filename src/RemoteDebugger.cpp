@@ -8,6 +8,9 @@
  *
  * Versions:
  *  ------	----------	-----------------
+ *  0.9.5	2019-03-19	All configurations have moved to RemoteDebugCfg.h,
+ * 						Due #defines in project not working, thanks to @22MarioZ for added this issue)
+ * 						Adjusted examples to indicate modify RemoteDebugCfg.h, instead project file (not works)
  *  0.9.4	2019-03-16  Adjustments on example
  *  0.9.3	2019-03-13	Support to RemoteDebug with connection by web socket
  *                      debugBreak for RemoteDebug now is redirect to a debugSilence of RemoteDebug
@@ -56,6 +59,10 @@
  * TODO known issues:
  * - Error on use debug* macros with F()
  */
+
+///// RemoteDebug configuration
+
+#include <RemoteDebugCfg.h>
 
 /////// Includes
 
@@ -144,7 +151,7 @@
 
 // Version
 
-#define DEBUGGER_VERSION "0.9.4"
+#define DEBUGGER_VERSION "0.9.5"
 
 // Low memory board ?
 

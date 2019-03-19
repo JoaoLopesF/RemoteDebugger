@@ -1,33 +1,48 @@
 /*
  * Header for RemoteDebugger
  *
- * Copyright (C) 2018  Joao Lopes https://github.com/JoaoLopesF/RemoteDebuggger
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3.
+ * MIT License
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * Copyright (c) 2019 Joao Lopes  https://github.com/JoaoLopesF/RemoteDebug
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This header file describes the public API for sending debug messages to a telnet client.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  */
 
 #ifndef REMOTEDEBUGGER_H
 #define REMOTEDEBUGGER_H
 
+///// RemoteDebug configuration
+
+#include <RemoteDebugCfg.h>
+
+// Debug enabled ?
+
+#ifndef DEBUG_DISABLED
+
 //////// Simple software debugger (based on SerialDebug)
 
-// Is for SerialDebug (TODO: in future will some code for both library)
+// Is for SerialDebug ? (TODO: in future will some code for both library)
 
 //#define DEBUGGER_FOR_SERIALDEBUG true
 
-// Is for RemoteDebug
+// Is for RemoteDebug ?
 
 #define DEBUGGER_FOR_REMOTEDEBUG true
 
@@ -74,10 +89,6 @@ typedef enum {										// Type of operator
 	DEBUG_WATCH_GREAT_EQ							// Greater or equal (>=)
 } debugEnumWatch_t;
 
-// Disable debug - good for release (production)
-// Put below define after the include SerialDebug/RemoteDebug in your project to disable all debug
-// as nothing of SerialDebug/RemoteDebug is compiled, zero overhead :-)
-//#define DEBUG_DISABLED true
 
 #ifdef DEBUG_DISABLED
 
@@ -91,22 +102,7 @@ typedef enum {										// Type of operator
 
 #endif
 
-// Disable debugger ? No more commands and features as functions and globals
-// Uncomment this to disable it (SerialDebug will not do reads from Serial, good if already have this)
-//#define DEBUG_DISABLE_DEBUGGER true
-
 #ifndef DEBUG_DISABLE_DEBUGGER	// Debugger enabled
-
-// Enable Flash variables support - F()
-// Used internally in SerialDebug and in public API
-// If is a low memory board, like AVR, all strings in SerialDebug is using flash memory
-// If have RAM memory, this is more fast than flash
-//#define DEBUG_USE_FLASH_F true
-
-// For Espressif boards, default is not flash support for printf,
-// due it have a lot of memory and Serial.printf is not compatible with it
-// If you need more memory, can force it:
-//#define DEBUG_USE_FLASH_F true
 
 //////// Defines
 
@@ -448,6 +444,7 @@ extern boolean _debugDebuggerEnabled;			// Simple Software Debugger enabled ?
 
 #endif // DEBUG_DISABLE_DEBUGGER
 
+#endif // DEBUG_DISABLED
 #endif // H
 
 //////// End

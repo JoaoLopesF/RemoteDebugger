@@ -68,17 +68,6 @@
 
 //#define WEB_SERVER_ENABLED true
 
-// Disable all debug ?
-//
-// Important to compile for prodution/release
-// Disable all debug ? Good to release builds (production)
-// as nothing of RemoteDebug is compiled, zero overhead :-)
-// For it just uncomment the DEBUG_DISABLED
-// On change it, if in another IDE than Arduino IDE, like Eclipse or VSCODE,
-// please clean the project, before compile
-
-//#define DEBUG_DISABLED true
-
 ////// Includes
 
 #if defined ESP8266
@@ -140,6 +129,48 @@ WebServer HTTPServer(80);
 #endif // WEB_SERVER_ENABLED
 
 // Remote debug over WiFi - not recommended for production/release, only for development
+
+// Options for RemoteDebug of this project
+
+// Attention: read this, before you change any option
+//
+// If yot changed it and not works, the compiler is using catching old compiled files
+// To workaround this:
+// - If have a clean project option (as Eclipse/Platformio), do it
+// - or force compiler to compiler all (changing any configuration of board)
+// - or to this change globally in RemoteDebugCfg.h (on library directory)
+// - And upload again
+//
+// thanks to @22MarioZ for added this issue
+
+// Disable all debug ?
+// Important to compile for prodution/release
+// Disable all debug ? Good to release builds (production)
+// as nothing of RemoteDebug is compiled, zero overhead :-)
+// Uncomment the line below, to do it:
+//#define DEBUG_DISABLED true
+
+// Disable te auto function feature of RemoteDebug
+// Good if your code already have func name on debug messages
+// Uncomment the line below, to do it:
+//#define DEBUG_DISABLE_AUTO_FUNC true
+
+// Disable Websocket? This is used with RemoteDebugApp connection
+// Uncomment the line below, to do it:
+//#define WEBSOCKET_DISABLED true
+
+#ifndef WEBSOCKET_DISABLED // Only if Web socket enabled (RemoteDebugApp)
+// If enabled, you can change the port here (8232 is default)
+// Uncomment the line below, to do it:
+//#define WEBSOCKET_PORT 8232
+
+// Internally, the RemoteDebug uses a local copy of the arduinoWebSockets library (https://github.com/Links2004/arduinoWebSockets)
+// Due it not in Arduino Library Manager
+// If your project already use this library,
+// Uncomment the line below, to do it:
+//#define USE_LIB_WEBSOCKET true
+#endif
+
 
 #include "RemoteDebug.h"        //https://github.com/JoaoLopesF/RemoteDebug
 
